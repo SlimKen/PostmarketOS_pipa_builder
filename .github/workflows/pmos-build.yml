@@ -96,7 +96,6 @@ jobs:
           mkdir -p /tmp/pmos-export
           cp -rL /home/runner/.local/var/pmbootstrap/chroot_rootfs_xiaomi-pipa/boot/* /tmp/pmos-export
           cp -rL /home/runner/.local/var/pmbootstrap/chroot_native/home/pmos/rootfs/xiaomi-pipa.img /tmp/pmos-export
-          cp -rL /home/runner/.local/var/pmbootstrap/chroot_buildroot_aarch64/var/lib/postmarketos-android-recovery-installer/pmos-xiaomi-pipa.zip /tmp/pmos-export
           ls -lh /tmp/pmos-export/
     
           # Verify expected files exist
@@ -145,7 +144,6 @@ jobs:
             |------|-------------|
             | `boot.img` | Kernel + initramfs (fastboot) |
             | `xiaomi-pipa.img` | Root filesystem image |
-            | `pmos-xiaomi-pipa.zip` | Android recovery flashable zip |
 
             If the archive is split into multiple `.7z` parts, download all of them before extracting.
             Extract with: `7z x pmos-xiaomi-pipa.7z` (or `pmos-xiaomi-pipa.7z.001` if split)
