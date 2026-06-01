@@ -142,7 +142,7 @@ jobs:
 
             | File | Description |
             |------|-------------|
-            | `boot.img` | Kernel + initramfs (fastboot) |
+            | ~~`boot.img` | Kernel + initramfs (fastboot)~~ Use (Tauchgang's U-boot for pipa)[https://gitlab.postmarketos.org/tauchgang/u-boot/-/artifacts] |
             | `xiaomi-pipa.img` | Root filesystem image |
 
             If the archive is split into multiple `.7z` parts, download all of them before extracting.
@@ -150,14 +150,14 @@ jobs:
 
             ## Flashing instructions
 
-            Prerequisites: unlocked bootloader, fastboot installed on your PC.
+            Prerequisites: unlocked bootloader, fastboot installed on your PC and Tauchgang's U-boot for pipa.
 
             ```sh
             # Boot into fastboot mode
             # Power off, then hold Volume Down + Power
 
             fastboot erase dtbo
-            fastboot flash boot boot.img
+            fastboot flash boot u-boot-xiaomi-pipa.img
             fastboot flash userdata xiaomi-pipa-root.img
             fastboot reboot
             ```
