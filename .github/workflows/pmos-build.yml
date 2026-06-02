@@ -142,7 +142,7 @@ jobs:
 
             | File | Description |
             |------|-------------|
-            | ~~`boot.img` | Kernel + initramfs (fastboot)~~ Use (Tauchgang's U-boot for pipa)[https://gitlab.postmarketos.org/tauchgang/u-boot/-/artifacts] |
+            | `boot.img` | ~~Kernel + initramfs (fastboot)~~ Use Tauchgang's U-boot for pipa https://gitlab.postmarketos.org/tauchgang/u-boot/-/artifacts |
             | `xiaomi-pipa.img` | Root filesystem image |
 
             If the archive is split into multiple `.7z` parts, download all of them before extracting.
