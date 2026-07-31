@@ -16,6 +16,8 @@ Find out what is working and more info here: https://wiki.postmarketos.org/wiki/
 If the archive is split into multiple `.7z` parts, download all of them before extracting.
 Extract with: `7z x pmos-xiaomi-pipa.7z` (or `pmos-xiaomi-pipa.7z.001` if split)
 
+Default login: username `user`, password `147147`
+
 ## Flashing instructions
 
 Prerequisites: unlocked bootloader, fastboot installed on your PC.
