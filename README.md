@@ -1,3 +1,4 @@
+[![Build postmarketOS for xiaomi-pipa](https://github.com/SlimKen/postmarketos_pipa_builder/actions/workflows/pmos-build.yml/badge.svg)](https://github.com/SlimKen/postmarketos_pipa_builder/actions/workflows/pmos-build.yml)
 # PostmarketOS_pipa_builder
 A workflow to build the latest PostmarketOS for the Xiaomi Pad 6 (pipa) for testing purposes.
 
