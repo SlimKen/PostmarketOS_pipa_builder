@@ -17,9 +17,9 @@ on:
       extra_space_mb:
         description: "Extra rootfs free space in MB"
         required: false
-        default: "0"
-  schedule:
-    - cron: "14 3 2 * *"
+        default: "1024"
+ # schedule:
+   # - cron: "14 3 2 * *"
 
 jobs:
   build:
@@ -37,21 +37,73 @@ jobs:
           df -h
 
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Install host dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y python3 openssl git qemu-user-static binfmt-support p7zip-full
+          sudo apt-get install -y python3 openssl git qemu-user-static binfmt-support p7zip-full build-essential bison flex libssl-dev libgnutls28-dev
           sudo systemctl start binfmt-support
           sudo update-binfmts --enable qemu-aarch64
+
+      - name: Install working mkbootimg
+        run: |
+          sudo mkdir -p /opt/mkbootimg/gki
+          MKBOOTIMG_REF="refs/tags/android-15.0.0_r1"
+          BASE_URL="https://android.googlesource.com/platform/system/tools/mkbootimg/+/${MKBOOTIMG_REF}"
+
+          sudo wget -q -O /opt/mkbootimg/mkbootimg.py.b64 "${BASE_URL}/mkbootimg.py?format=TEXT"
+          sudo wget -q -O /opt/mkbootimg/gki/generate_gki_certificate.py.b64 "${BASE_URL}/gki/generate_gki_certificate.py?format=TEXT"
+
+          sudo bash -c '
+            base64 -d /opt/mkbootimg/mkbootimg.py.b64 > /opt/mkbootimg/mkbootimg.py
+            base64 -d /opt/mkbootimg/gki/generate_gki_certificate.py.b64 > /opt/mkbootimg/gki/generate_gki_certificate.py
+            rm /opt/mkbootimg/mkbootimg.py.b64 /opt/mkbootimg/gki/generate_gki_certificate.py.b64
+            touch /opt/mkbootimg/gki/__init__.py
+          '
+          sudo chmod +x /opt/mkbootimg/mkbootimg.py
+          sudo ln -sf /opt/mkbootimg/mkbootimg.py /usr/local/bin/mkbootimg
+          echo "PYTHONPATH=/opt/mkbootimg:$PYTHONPATH" >> "$GITHUB_ENV"
+          PYTHONPATH=/opt/mkbootimg mkbootimg --help
+          
+          
+      - name: Install aarch64-none-elf toolchain
+        run: |
+          cd /tmp
+          wget -q https://gitlab.arm.com/api/v4/projects/tooling%2Fgnu-toolchains-for-arm/packages/generic/gnu-toolchain/15.3.rel1/arm-gnu-toolchain-15.3.rel1-x86_64-aarch64-none-elf.tar.xz
+          sudo mkdir -p /opt/toolchains
+          sudo tar -xf arm-gnu-toolchain-15.3.rel1-x86_64-aarch64-none-elf.tar.xz -C /opt/toolchains
+          echo "/opt/toolchains/arm-gnu-toolchain-15.3.rel1-x86_64-aarch64-none-elf/bin" >> "$GITHUB_PATH"
+
+      - name: Clone and Build EFI boot image
+        run: |
+          git clone --depth=1 https://source.denx.de/u-boot/u-boot.git
+          cd u-boot
+          sed -i "s/^preboot=.*\$/preboot=scsi scan; part start scsi 0 userdata userdata_start; part size scsi 0 userdata userdata_size; blkmap create root; blkmap map root 0 0x\${userdata_size} linear scsi 0 0x\${userdata_start}/" board/qualcomm/qcom-phone.env
+          make qcom_defconfig qcom-phone.config
+          ./scripts/config --enable CONFIG_BLKMAP --enable CONFIG_CMD_BLKMAP
+          ./scripts/config --set-str CONFIG_DEFAULT_DEVICE_TREE "qcom/sm8250-xiaomi-pipa"
+          CROSS_COMPILE=aarch64-none-elf- make -j$(nproc)
+          gzip -f u-boot-nodtb.bin
+          cat u-boot-nodtb.bin.gz u-boot.dtb > u-boot-xiaomi-pipa.bin
+          mkbootimg --kernel u-boot-xiaomi-pipa.bin -o u-boot-xiaomi-pipa.img
+          
+          # Verify expected built file exists
+          if [ ! -f ${{ github.workspace }}/u-boot/u-boot-xiaomi-pipa.img ]; then
+            echo "ERROR: Expected EFI built not found in working directory"
+            echo ls -al
+            exit 1
+          fi
+
+      - name: Clone pmbootstrap and add to path
+        run: |
           git clone --depth=1 https://gitlab.postmarketos.org/postmarketOS/pmbootstrap.git ~/pmbootstrap
           mkdir -p ~/.local/bin
           ln -s "$HOME/pmbootstrap/pmbootstrap.py" ~/.local/bin/pmbootstrap
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Restore pmbootstrap cache
-        uses: actions/cache@v6
+        uses: actions/cache@v5
         with:
           path: |
             ~/.local/var/pmbootstrap/packages
@@ -142,15 +194,15 @@ jobs:
 
             | File | Description |
             |------|-------------|
-            | `boot.img` | ~~Kernel + initramfs (fastboot)~~ Use Tauchgang's U-boot for pipa https://gitlab.postmarketos.org/tauchgang/u-boot/-/artifacts |
             | `xiaomi-pipa.img` | Root filesystem image |
+            | `u-boot-xiaomi-pipa.img` | U-boot EFI image |
 
             If the archive is split into multiple `.7z` parts, download all of them before extracting.
             Extract with: `7z x pmos-xiaomi-pipa.7z` (or `pmos-xiaomi-pipa.7z.001` if split)
 
             ## Flashing instructions
 
-            Prerequisites: unlocked bootloader, fastboot installed on your PC and Tauchgang's U-boot for pipa.
+            Prerequisites: unlocked bootloader, fastboot installed on your PC.
 
             ```sh
             # Boot into fastboot mode
@@ -165,5 +217,7 @@ jobs:
             Default login: username `user`, password `147147`
 
             Warning: flashing will wipe userdata. Back up your Android data first.
-          files: /tmp/pmos-xiaomi-pipa.7z*
+          files: |
+            /tmp/pmos-xiaomi-pipa.7z*
+            ${{ github.workspace }}/u-boot/u-boot-xiaomi-pipa.img
           fail_on_unmatched_files: true
