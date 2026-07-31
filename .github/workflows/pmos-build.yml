@@ -146,7 +146,7 @@ jobs:
       - name: Export images
         run: |
           mkdir -p /tmp/pmos-export
-          cp -rL /home/runner/.local/var/pmbootstrap/chroot_rootfs_xiaomi-pipa/boot/* /tmp/pmos-export
+          # cp -rL /home/runner/.local/var/pmbootstrap/chroot_rootfs_xiaomi-pipa/boot/* /tmp/pmos-export
           cp -rL /home/runner/.local/var/pmbootstrap/chroot_native/home/pmos/rootfs/xiaomi-pipa.img /tmp/pmos-export
           ls -lh /tmp/pmos-export/
     
