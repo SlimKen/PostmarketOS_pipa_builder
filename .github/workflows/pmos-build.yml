@@ -179,7 +179,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
-          name: "postmarketOS pipa - ${{ github.event.inputs.ui || 'plasma-desktop' }} - ${{ env.RELEASE_TAG }}"
+          name: "postmarketOS pipa - ${{ github.event.inputs.ui || 'plasma-desktop' }}"
           body: |
             ## postmarketOS for Xiaomi Pad 6 (xiaomi-pipa)
 
@@ -190,32 +190,7 @@ jobs:
             | Built    | ${{ env.RELEASE_TAG }} |
             | Branch   | pmaports edge |
 
-            ## Contents of the archive
-
-            | File | Description |
-            |------|-------------|
-            | `xiaomi-pipa.img` | Root filesystem image |
-            | `u-boot-xiaomi-pipa.img` | U-boot EFI image |
-
-            If the archive is split into multiple `.7z` parts, download all of them before extracting.
-            Extract with: `7z x pmos-xiaomi-pipa.7z` (or `pmos-xiaomi-pipa.7z.001` if split)
-
-            ## Flashing instructions
-
-            Prerequisites: unlocked bootloader, fastboot installed on your PC.
-
-            ```sh
-            # Boot into fastboot mode
-            # Power off, then hold Volume Down + Power
-
-            fastboot erase dtbo
-            fastboot flash boot u-boot-xiaomi-pipa.img
-            fastboot flash userdata xiaomi-pipa-root.img
-            fastboot reboot
-            ```
-
             Default login: username `user`, password `147147`
-
             Warning: flashing will wipe userdata. Back up your Android data first.
           files: |
             /tmp/pmos-xiaomi-pipa.7z*
