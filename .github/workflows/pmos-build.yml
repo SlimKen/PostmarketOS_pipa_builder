@@ -18,8 +18,8 @@ on:
         description: "Extra rootfs free space in MB"
         required: false
         default: "1024"
- # schedule:
-   # - cron: "14 3 2 * *"
+  schedule:
+    - cron: "14 3 2 * *"
 
 jobs:
   build:
