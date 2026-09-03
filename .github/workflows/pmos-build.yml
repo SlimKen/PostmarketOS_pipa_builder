@@ -107,7 +107,8 @@ jobs:
         with:
           path: |
             ~/.local/var/pmbootstrap/packages
-            ~/.local/var/pmbootstrap/cache_apk_index
+            ~/.local/var/pmbootstrap/cache_apk_aarch64
+            ~/.local/var/pmbootstrap/cache_apk_x86_64
             ~/.local/var/pmbootstrap/cache_ccache
           key: pmos-pipa-${{ github.event.inputs.ui || 'plasma-desktop' }}-${{ hashFiles('pmbootstrap_v3.cfg') }}-${{ github.run_id }}
           restore-keys: |
@@ -118,7 +119,7 @@ jobs:
         run: |
           mkdir -p ~/.config
           UI="${{ github.event.inputs.ui || 'plasma-desktop' }}"
-          EXTRA_SPACE="${{ github.event.inputs.extra_space_mb || '0' }}"
+          EXTRA_SPACE="${{ github.event.inputs.extra_space_mb || '1024' }}"
           sed \
             -e "s|^ui = .*|ui = ${UI}|" \
             -e "s|^extra_space = .*|extra_space = ${EXTRA_SPACE}|" \
